@@ -36,15 +36,40 @@ The car uses Unity's physics system with customized settings:
 Despite having a well-structured implementation, we encountered several significant challenges that prevented us from fully training the ML model:
 
 1. **Platform Compatibility**: Unable to run the ML-Agents training on macOS, which was the primary development environment for most team members
+   - ML-Agents relies on specific TensorFlow functionalities that have limited compatibility with macOS
+   - Apple Silicon (M1/M2) Macs faced additional compatibility layers through Rosetta 2
+   - Environment variables and paths handling differs between macOS and other platforms
 
 2. **Python Dependencies**:
-   - Version incompatibilities with the required Python runtime
-   - Protobuf compatibility issues across different systems
-   - PyTorch installation problems on some platforms
+   - Version incompatibilities with the required Python runtime (3.8 needed but conflicting with other system dependencies)
+   - Protobuf compatibility issues across different systems (ML-Agents requires specific protobuf versions)
+   - PyTorch installation problems on some platforms (CUDA dependencies on Windows, architecture-specific builds)
+   - Virtual environment conflicts with system Python installations
 
 3. **Communication Issues**: Persistent problems with the connection between the Unity Editor and the Python training environment where ML-Agents runs
+   - Socket timeouts during training initialization
+   - Inconsistent serialization/deserialization of model data
+   - Process termination during training due to memory constraints
 
-These obstacles made it impossible to complete the full ML training cycle within the project timeframe.
+### Technical Hurdles in Detail
+
+Our team encountered numerous specific errors that prevented successful model training:
+
+- **Socket Communication Failures**: When trying to establish communication between the Unity Editor and Python training process, we frequently encountered `SocketException` errors with messages like "Connection refused" or "Connection reset by peer"
+  
+- **Protobuf Version Conflicts**: ML-Agents requires specific versions of protobuf (typically 3.6.0 to 3.8.0), but many team members had either newer versions (causing deprecation issues) or older versions (causing feature unavailability)
+
+- **Mlagents CLI Issues**: Commands like `mlagents-learn` would frequently fail with cryptic error messages related to TensorFlow backend initialization or CUDA unavailability
+
+- **CUDA/PyTorch Compatibility**: On Windows machines, installing the correct CUDA toolkit version to match the PyTorch requirements proved challenging, with driver conflicts preventing proper GPU utilization
+
+- **Editor-Python Sync**: Even when connections would establish, synchronization issues between the timescales of the Unity physics simulation and the Python training algorithm would cause agents to behave erratically
+
+- **Memory Limitations**: Training attempts on less powerful machines would frequently crash due to memory exhaustion, particularly when trying to increase the number of parallel environments for faster training
+
+After multiple attempts at troubleshooting these issues across different machines and operating systems, we reached a point where continued focus on resolving the technical dependencies would have consumed the remaining project time without guaranteeing success.
+
+These obstacles made it impossible to complete the full ML training cycle within the project timeframe, despite the agent script being fully implemented and theoretically functional.
 
 ## Fallback Solution
 
